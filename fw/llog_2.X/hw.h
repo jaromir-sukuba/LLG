@@ -14,6 +14,10 @@
 
 #define     LDR_ADC_CHNL    6
 
+#define     EE_SIZE        32768
+#define     EE_PAGE_SIZE   4
+#define     MAX_EE_LOG_PTR EE_SIZE/EE_PAGE_SIZE
+
 #define	FCY		500000UL
 
 
@@ -42,7 +46,8 @@ struct
 unsigned char CHAR;
 }key_t; 
 
-void shdn (void);
+void shdn (uint8_t lcd_state);
+void enable_lcd (void);
 void power_on (void);
 void main_init (void);
 void clock_lprc (void);
@@ -77,3 +82,4 @@ unsigned int get_adc(uint8_t chnl);
 #define MS_IDLE         9
 #define MS_CALCULATE    10
 #define MS_UPDATE       11
+#define MS_LCDST        12

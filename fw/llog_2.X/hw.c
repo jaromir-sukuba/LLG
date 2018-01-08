@@ -84,7 +84,25 @@ void main_init (void)
 	ANSEbits.ANSE4 = 0;	
 
 	power_on();	
+	enable_lcd();
 	
+	__builtin_write_RTCWEN();
+	ALCFGRPTbits.AMASK = 0b0011;
+	ALCFGRPTbits.ALRMEN = 1;
+	RTCPWCbits.RTCLK = 0b00;
+	RCFGCALbits.RTCWREN = 1;
+	RCFGCALbits.RTCEN = 1;
+	IEC3bits.RTCIE = 1;
+	RCFGCALbits.RTCWREN = 0;
+	
+//	IEC0bits.INT0IE = 1;
+	
+	}
+
+
+
+void enable_lcd (void)
+	{
 	LCDCONbits.LMUX = 0b011;
 	LCDCONbits.CS = 0b01;
 	LCDREFbits.LCDIRE = 1;
@@ -108,24 +126,8 @@ void main_init (void)
 	LCDSE1bits.SE27 = 1;
 	LCDSE3bits.SE48 = 1;
 	LCDCONbits.LCDEN = 1;
-			
-	
 	set_segs(0x0000);
-	
-	__builtin_write_RTCWEN();
-	ALCFGRPTbits.AMASK = 0b0011;
-	ALCFGRPTbits.ALRMEN = 1;
-	RTCPWCbits.RTCLK = 0b00;
-	RCFGCALbits.RTCWREN = 1;
-	RCFGCALbits.RTCEN = 1;
-	IEC3bits.RTCIE = 1;
-	RCFGCALbits.RTCWREN = 0;
-	
-//	IEC0bits.INT0IE = 1;
-	
 	}
-
-
 
 
 void clock_lprc (void)
@@ -278,19 +280,28 @@ void ee_read_page (uint16_t addr, uint8_t * data, uint8_t len)
 	}
 
 
-void shdn (void)
+void shdn (uint8_t lcd_state)
 	{
 	AD1CON1bits.ADON = 0;
 	PMD1bits.ADC1MD = 1;
 	PMD1bits.T1MD = 1;
 	PMD1bits.SPI1MD = 1;	
 	PMD1bits.U1MD = 1;
+	if (lcd_state==0)
+		{
+		PMD6bits.LCDMD = 1;
+		}
 	IFS0bits.INT0IF = 0;
 	IEC0bits.INT0IE = 1;
 	RCONbits.RETEN = 1;
 	asm volatile ("PWRSAV #0x0000");			
 	asm volatile ("NOP");	
 	power_on();
+	if (lcd_state==0)
+		{
+		PMD6bits.LCDMD = 0;
+		enable_lcd();
+		}
 	
 	}
 

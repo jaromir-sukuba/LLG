@@ -56,11 +56,11 @@ void display_time (char * line, char * msg, uint8_t v1, uint8_t v2, uint8_t v3, 
 void display_date (char * line, char * msg, uint8_t v1, uint8_t v2, uint8_t v3, uint8_t v4, uint8_t blank);
 void refresh_lcd_arrays (void);
 
-#define		IDLE_CNT_MAX	30
+#define		IDLE_CNT_MAX	10
 
 rtc_t rtc_now,rtc_set;
 key_t keys,keys_new,keys_old;
-uint8_t main_state,edit_ptr,edit_blank,edit_blank_tmr,main_state_prev,day,month;
+uint8_t main_state,edit_ptr,edit_blank,edit_blank_tmr,main_state_prev,day,month,lcd_state;
 uint16_t ll_log_arr[LL_LOG_SIZE],ll_log_ptr=0,mem_log_ptr=0,ee_read_addr=0;
 uint16_t i,t,idle_cnt;
 char lcd_array[10], lcd_array_o[10],lcd_array_lat[10],lcd_array_lon[10],lcd_array_log[10],tx_str[25];
@@ -109,6 +109,7 @@ int main(void)
 	mem_log_ptr++;
 	refresh_lcd_arrays();
 	clock_lprc();
+	lcd_state = 1;
 	while (1)
 		{
 		if (timer_elapsed())
@@ -136,7 +137,7 @@ int main(void)
 			rtc_read(&rtc_now);
 			display_time(lcd_array,"  ",rtc_now.hrs_t,rtc_now.hrs_o,rtc_now.min_t,rtc_now.min_o,10);
 			lcd_write_chars(lcd_array,LCD_P1|LCD_X);
-			shdn();
+			shdn(lcd_state);
 			}
 		if (main_state==MS_CALCULATE)
 			{
@@ -152,9 +153,12 @@ int main(void)
 				eq_of_time = get_eq_time(day,month);
 				latitude = get_latitude(day_length,-3.0,declination);
 				longitude = get_longitude(solar_noon,eq_of_time);
-				prepare_mem_log(latitude,longitude,ee_array);
-				ee_write_page(mem_log_ptr*4,ee_array,8);			//writing 8 bytes, last 4 are only 0xFF to denote end of record
-				mem_log_ptr++;										//those 4 bytes will be overwritten on next record
+				if (mem_log_ptr<MAX_EE_LOG_PTR)
+					{
+					prepare_mem_log(latitude,longitude,ee_array);
+					ee_write_page(mem_log_ptr*EE_PAGE_SIZE,ee_array,EE_PAGE_SIZE*2);//writing 8 bytes, last 4 are only 0xFF to denote end of record
+					mem_log_ptr++;										//those 4 bytes will be overwritten on next record
+					}
 				refresh_lcd_arrays();
 				clock_lprc();
 				}
@@ -168,7 +172,7 @@ int main(void)
 			main_state = main_state_prev;
 			rtc_read(&rtc_now);
 			//ll_log_arr[ll_log_ptr] = ll_vals[ll_log_ptr];
-			ll_log_arr[ll_log_ptr] = get_adc(LDR_ADC_CHNL);
+			ll_log_arr[ll_log_ptr] = get_adc(LDR_ADC_CHNL) / 4;
 			ll_log_ptr++;
 			LDR_PWR = 0;
 			if ((rtc_now.min_o==0)&(rtc_now.min_t==0)&(rtc_now.hrs_o==0)&(rtc_now.hrs_t==0))
@@ -245,7 +249,7 @@ int main(void)
 			if (keys.k1)
 				{
 				keys.k1 = 0;
-				main_state = MS_DISP_TIME;
+				main_state = MS_LCDST;
 				}
 			if (keys.k2)
 				{
@@ -282,7 +286,26 @@ int main(void)
 				clock_lprc();
 				}
 			}
-
+		if (main_state==MS_LCDST)
+			{
+			if (lcd_state==0)
+				lcd_write_chars("lcd off ",0);
+			else
+				lcd_write_chars("lcd on  ",0);
+			if (keys.k1)
+				{
+				keys.k1 = 0;
+				main_state = MS_DISP_TIME;
+				}
+			if (keys.k2)
+				{
+				keys.k2 = 0;
+				if (lcd_state==0)
+					lcd_state = 1;
+				else
+					lcd_state = 0;
+				}
+			}
 
 		if (main_state==MS_EDIT_TIME)
 			{
