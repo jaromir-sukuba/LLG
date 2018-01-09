@@ -37,7 +37,7 @@
         <targetDevice>PIC24FJ128GA306</targetDevice>
         <targetHeader></targetHeader>
         <targetPluginBoard></targetPluginBoard>
-        <platformTool>ICD3PlatformTool</platformTool>
+        <platformTool>Simulator</platformTool>
         <languageToolchain>XC16</languageToolchain>
         <languageToolchainVersion>1.33</languageToolchainVersion>
         <platform>3</platform>
@@ -98,7 +98,7 @@
         <property key="oXC16gcc-sfr-warn" value="false"/>
         <property key="oXC16gcc-smar-io-lvl" value="1"/>
         <property key="oXC16gcc-smart-io-fmt" value=""/>
-        <property key="optimization-level" value="0"/>
+        <property key="optimization-level" value="3"/>
         <property key="post-instruction-scheduling" value="default"/>
         <property key="pre-instruction-scheduling" value="default"/>
         <property key="preprocessor-macros" value=""/>
@@ -187,6 +187,7 @@
         <property key="preserve-file" value=""/>
         <property key="relaxed-math" value="false"/>
         <property key="save-temps" value="false"/>
+        <appendMe value="-specs=cmd.txt"/>
       </C30Global>
       <ICD3PlatformTool>
         <property key="ADC 1" value="true"/>
@@ -267,7 +268,7 @@
         <property key="oscillator.auxfrequency" value="120"/>
         <property key="oscillator.auxfrequencyunit" value="Mega"/>
         <property key="oscillator.frequency" value="16"/>
-        <property key="oscillator.frequencyunit" value="Kilo"/>
+        <property key="oscillator.frequencyunit" value="Mega"/>
         <property key="oscillator.rcfrequency" value="16"/>
         <property key="oscillator.rcfrequencyunit" value="Kilo"/>
         <property key="periphADC1.altscl" value="false"/>
